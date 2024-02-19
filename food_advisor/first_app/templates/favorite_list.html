@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorite List</title>
+</head>
+<body>
+    <ul>
+        {% for item in items %}
+        <li>{{ item.item_name }}</li>
+        <li>{{ item.category }}</li>
+        <li>{{ item.calories }}</li>
+        <li>{{ item.vitamin }}</li>
+        <li>{{ item.ingredient }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
