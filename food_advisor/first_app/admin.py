@@ -25,4 +25,5 @@ admin.site.register(models.Person,ProductPerson)
 admin.site.register(models.Advisor,ProductAdvisor)
 admin.site.register(models.Item,ProductItem)
 admin.site.register(models.Report,ProductReport)
+admin.site.register(models.Favorite_list)
 

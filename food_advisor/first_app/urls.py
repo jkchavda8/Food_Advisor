@@ -9,9 +9,11 @@ urlpatterns=[
     path('advisor_list/', views.advisor_list, name='advisor_list'),
     path('create_item/', views.create_item, name='create_item'),
     path('item_list/', views.item_list, name='item_list'),
+    path('favorite_list/',views.favorite_list,name='favorite_list'),
     path('create_report/', views.create_report, name='create_report'),
     path('report_list/', views.report_list, name='report_list'),
     path('home/',views.home,name='home'),
     path('login/',views.Login,name='Login'),
     path('logout/',views.Logout,name='Logout'),
+    path('add_to_favorites/', views.add_to_favorites, name='add_to_favorites'),
 ]

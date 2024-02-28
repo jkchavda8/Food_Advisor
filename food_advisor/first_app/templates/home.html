@@ -58,6 +58,10 @@
             bottom: 0;
             width: 100%;
         }
+            img {
+                height: 200px; /* Set the desired height */
+                width: auto; /* Maintain aspect ratio */
+            }
     </style>
 </head>
 <body>
@@ -72,21 +76,28 @@
         <a href="../favorite_list">Favorite List</a>
     </nav>
     <div class="container">
+        {% for food_item in food_items %}
         <div class="food-item">
-            <h2>Food Item 1</h2>
-            <p>Description of food item 1.</p>
+            <ul>
+                <li>{{ food_item.item_name }}</li>
+                <li>{{ food_item.category }}</li>
+                <li>{{ food_item.calories }}</li>
+                <li>{{ food_item.vitamin }}</li>
+                <li>{{ food_item.ingredient }}</li>
+                <li><img src="{{ food_item.image_url }}" alt="{{ food_item.item_name }}"></li>
+            </ul>
+            <form action="{% url 'add_to_favorites' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="food_item_id" value="{{ food_item.item_name }}">
+                <button type="submit">Add to Favorites</button>
+            </form>
         </div>
-        <div class="food-item">
-            <h2>Food Item 2</h2>
-            <p>Description of food item 2.</p>
-        </div>
-        <div class="food-item">
-            <h2>Food Item 3</h2>
-            <p>Description of food item 3.</p>
-        </div>
+        {% endfor %}
     </div>
+
     <footer>
         &copy; 2024 Food Advisor
     </footer>
 </body>
+
 </html>

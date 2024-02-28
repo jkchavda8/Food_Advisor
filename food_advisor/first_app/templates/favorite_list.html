@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favorite List</title>
+    <style>
+        /* CSS to set height and width of the image */
+        img {
+            height: 200px; /* Set the desired height */
+            width: auto; /* Maintain aspect ratio */
+        }
+    </style>
 </head>
 <body>
     <ul>
@@ -13,6 +20,7 @@
         <li>{{ item.calories }}</li>
         <li>{{ item.vitamin }}</li>
         <li>{{ item.ingredient }}</li>
+        <li><img src="{{ item.image_url }}" alt="{{ item.item_name }}"></li>
         {% endfor %}
     </ul>
 </body>

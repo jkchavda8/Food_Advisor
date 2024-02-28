@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+MEDIA_URL = '/item_images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'item_images')
 
 # Application definition
 
