@@ -16,4 +16,8 @@ urlpatterns=[
     path('login/',views.Login,name='Login'),
     path('logout/',views.Logout,name='Logout'),
     path('add_to_favorites/', views.add_to_favorites, name='add_to_favorites'),
+    path('remove_from_favorites/',views.remove_from_favorites,name='remove_from_favorites'),
+    path('mark_as_eaten/',views.mark_as_eaten,name='mark_as_eaten'),
+    path('report_lists/',views.report_lists,name='report_lists'),
+    path('set_target/',views.set_target,name='set_target'),
 ]

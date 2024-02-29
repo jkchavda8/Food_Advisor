@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
-from .forms import  PersonForm,AdvisorForm, ItemForm, ReportForm , Favorite_listForm
-from .models import Person, Advisor, Item, Report, Favorite_list
+from .forms import  PersonForm,AdvisorForm, ItemForm, ReportForm , Favorite_listForm,EatenForm,TargetForm
+from .models import Person, Advisor, Item, Report, Favorite_list,Eaten,Target
+from django.contrib import messages
+from django.db.models import Sum,F
+from django.utils import timezone
 
 def create_person(request):
     if request.method == 'POST':
@@ -100,10 +103,6 @@ def create_report(request):
         form = ReportForm()
     return render(request, 'create_report.html', {'form': form})
 
-def report_list(request):
-    reports = Report.objects.all()
-    return render(request, 'report_list.html', {'reports': reports})
-
 def home(r):
     if r.session.session_key is None:
         return redirect('Login')
@@ -183,6 +182,136 @@ def add_to_favorites(request):
             if not Favorite_list.objects.filter(pr_name=pr_id, item_id=item_id).exists():
                 favorite_item = Favorite_list(pr_name=pr_id, item_id=item_id)
                 favorite_item.save()
-    
+                messages.success(request, 'Item added to favorites successfully.')
+            else:
+                messages.error(request, 'Item is already in favorites.')
+        else:
+            messages.error(request, 'You must be logged in to add items to favorites.')
     # Redirect back to the home page after adding the food item to favorites
     return redirect('home')
+
+def remove_from_favorites(request):
+    if request.method == 'POST':
+        # Get the ID of the food item from the POST data
+        food_item_id = request.POST.get('food_item_id')
+        current_user = request.session['username']
+
+        if current_user is not None:
+            item_id = get_item_id_by_name(food_item_id)
+            pr_id = get_peron_id_by_name(current_user)
+            favorite_item = Favorite_list.objects.filter(pr_name=pr_id, item_id=item_id).first()
+            if favorite_item:
+                favorite_item.delete()
+                messages.success(request, 'Item removed from favorites successfully.')
+            else:
+                messages.error(request, 'Item not found in favorites.')
+        else:
+            messages.error(request, 'You must be logged in to remove items from favorites.')
+    return redirect('favorite_list')
+
+def mark_as_eaten(request):
+    if request.method == 'POST':
+        food_item_id = request.POST.get('food_item_id')
+        quantity = request.POST.get('quantity', 1)
+        current_user = request.session['username']
+        if current_user is not None:
+            try:
+                item_id = get_item_id_by_name(food_item_id)
+                pr_id = get_peron_id_by_name(current_user)
+                # Create and save the Eaten instance
+                eaten_item = Eaten.objects.filter(pr_name=pr_id, item_id=item_id).first()
+                if eaten_item:
+                    # If already eaten, update the quantity
+                    eaten_item.quntity += int(quantity)
+                    eaten_item.save()
+                    messages.success(request, f'{quantity} item(s) added to the existing eaten items.')
+                else:
+                    # If not eaten yet, create a new Eaten instance
+                    eaten_item = Eaten(pr_name=pr_id, item_id=item_id, quntity=quantity)
+                    eaten_item.save()
+                    messages.success(request, f'{quantity} item(s) marked as eaten.')
+            except Person.DoesNotExist:
+                messages.error(request, 'User does not exist.')
+            except Item.DoesNotExist:
+                messages.error(request, 'Item does not exist.')
+        else:
+            messages.error(request, 'You must be logged in to mark items as eaten.')
+
+    return redirect('home')
+
+def report_list(request):
+    try:
+        # Retrieve the person object
+        current_user = request.session['username']
+        person = Person.objects.get(name=current_user)
+        
+        # Query the eaten items for the person
+        eaten_items = Eaten.objects.filter(pr_name=person)
+        
+        # Calculate total calories
+        total_calories = eaten_items.aggregate(total_calories=Sum(F('item_id__calories') * F('quntity')))['total_calories'] or 0
+        
+        # Prepare consumed items list and total ingredients
+        consumed_items = [f"{item.item_id.item_name} ({item.quntity})" for item in eaten_items]
+        total_ingredients = list(set([item.item_id.ingredient for item in eaten_items]))
+        total_vitamins = list(set([item.item_id.vitamin for item in eaten_items]))
+
+        existing_report = Report.objects.filter(pr_nm=person, date=timezone.now().date()).first()
+        if existing_report:
+            # Update the existing report
+            existing_report.total_calories = total_calories
+            existing_report.total_vitamins = total_vitamins
+            existing_report.consumed_items = ', '.join(consumed_items)
+            existing_report.total_ingredient = ', '.join(total_ingredients)
+            existing_report.save()
+            messages.success(request, "Your report has been updated.")
+            return redirect('home')
+        # Create and save the report instance
+        report = Report.objects.create(
+            pr_nm=person,
+            date=timezone.now(),
+            total_calories=total_calories,
+            total_vitamins=total_vitamins,
+            consumed_items=', '.join(consumed_items),
+            total_ingredient=', '.join(total_ingredients)
+        )
+        return redirect('report_lists')
+    except Person.DoesNotExist:
+        # Handle the case where the person with the given ID does not exist
+        return redirect('home')
+    
+def report_lists(request):
+    try:
+        # Retrieve the current user
+        current_user = request.session['username']
+        person = Person.objects.get(name=current_user)
+        
+        # Query reports for the logged-in user
+        reports = Report.objects.filter(pr_nm=person)
+        
+        return render(request, 'report_lists.html', {'reports': reports})
+    except Person.DoesNotExist:
+        # Handle the case where the person with the given ID does not exist
+        return redirect('home')
+    
+def set_target(request):
+    vitamin_choices = Target.VITAMIN_CHOICES
+    if request.method == 'POST':
+        current_user = request.session['username']
+        tr_calories = request.POST['tr_calories']
+        tr_vitamins = request.POST.getlist('tr_vitamins')  # Use getlist to retrieve multiple selected values
+        tr_ingredient = request.POST['tr_ingredient']
+        person = Person.objects.get(name=current_user)
+        # You don't need to check form.is_valid() because you're not using a form here
+
+        target = Target.objects.create(
+            pr_nm=person,
+            tr_calories=tr_calories,
+            tr_vitamins=tr_vitamins,
+            tr_ingredient=tr_ingredient
+        )
+        # Redirect to a success page or homepage
+        return redirect('home')
+    else:
+        form = TargetForm()
+    return render(request, 'set_target.html', {'form': form, 'VITAMIN_CHOICES': vitamin_choices})

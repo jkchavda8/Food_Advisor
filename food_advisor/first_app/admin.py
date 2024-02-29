@@ -19,11 +19,17 @@ class ProductItem(admin.ModelAdmin):
     list_display = ['item_name', 'category', 'calories', 'vitamin', 'ingredient']
 class ProductReport(admin.ModelAdmin):
     model = models.Report
-    list_display = ['date', 'total_calories', 'quentity']
+    list_display = ['date', 'total_calories','total_vitamins','consumed_items','total_ingredient' ]
+
+
 
 admin.site.register(models.Person,ProductPerson)
 admin.site.register(models.Advisor,ProductAdvisor)
 admin.site.register(models.Item,ProductItem)
 admin.site.register(models.Report,ProductReport)
 admin.site.register(models.Favorite_list)
+admin.site.register(models.Eaten)
+admin.site.register(models.Target)
+
+
 

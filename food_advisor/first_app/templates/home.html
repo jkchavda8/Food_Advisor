@@ -65,6 +65,7 @@
     </style>
 </head>
 <body>
+    
     <header>
         <h1>Food Advisor</h1>
     </header>
@@ -74,8 +75,18 @@
         <a href="#">Contact</a>
         <a href="../logout">Logout</a>
         <a href="../favorite_list">Favorite List</a>
+        <a href="/report_list"> Generate Report</a>
+        <a href="/report_lists">view Report</a>
+        <a href="/set_target">Set Target</a>
     </nav>
     <div class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% for food_item in food_items %}
         <div class="food-item">
             <ul>
@@ -91,6 +102,12 @@
                 <input type="hidden" name="food_item_id" value="{{ food_item.item_name }}">
                 <button type="submit">Add to Favorites</button>
             </form>
+            <form action="{% url 'mark_as_eaten' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="food_item_id" value="{{ food_item.item_name }}">
+                <input type="number" name="quantity" value="1" min="1" placeholder="Quantity">
+                <button type="submit">Mark as Eaten</button>
+            </form>
         </div>
         {% endfor %}
     </div>
@@ -98,6 +115,39 @@
     <footer>
         &copy; 2024 Food Advisor
     </footer>
+    <script>
+        function addToFavorites(foodItemId) {
+            // Make an AJAX request to add the item to favorites
+            fetch('{% url "add_to_favorites" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    food_item_id: foodItemId
+                })
+            })
+            .then(response => {
+                // Handle response, update star button accordingly
+                if (response.ok) {
+                    const favoriteBtn = document.getElementById(`add-to-favorites-${foodItemId}`).querySelector('.favorite-btn');
+                    const star = favoriteBtn.querySelector('.star');
+                    const isInFavorites = star.textContent === '★';
+                    if (isInFavorites) {
+                        star.textContent = '☆'; // Change to empty star
+                    } else {
+                        star.textContent = '★'; // Change to filled star
+                    }
+                } else {
+                    console.error('Failed to add to favorites');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to favorites:', error);
+            });
+        }
+        </script>
 </body>
 
 </html>

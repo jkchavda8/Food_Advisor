@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Set Target</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="tr_calories">Calories:</label>
+        <input type="number" name="tr_calories" id="tr_calories" required><br>
+        <label>Vitamins:</label><br>
+        {% for choice in VITAMIN_CHOICES %}
+            <input type="checkbox" id="vitamin_{{ forloop.counter }}" name="tr_vitamins" value="{{ choice.0 }}">
+            <label for="vitamin_{{ forloop.counter }}">{{ choice.1 }}</label><br>
+        {% endfor %}
+        <label for="tr_ingredient">Ingredient:</label>
+        <input type="text" name="tr_ingredient" id="tr_ingredient" required><br>
+        <button type="submit">Save</button>
+    </form>
+</body>
+</html>

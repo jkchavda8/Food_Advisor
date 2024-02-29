@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from .models import Person, Advisor, Item, Report,Favorite_list
+from .models import Person, Advisor, Item, Report,Favorite_list,Eaten,Target
 
 class PersonForm(forms.ModelForm):
     class Meta:
@@ -20,9 +20,19 @@ class ItemForm(forms.ModelForm):
 class ReportForm(forms.ModelForm):
     class Meta:
         model = Report
-        fields = ['pr_nm','date', 'total_calories', 'quentity']
+        fields = ['pr_nm','date', 'total_calories', 'total_vitamins','consumed_items','total_ingredient']
 
 class Favorite_listForm(forms.ModelForm):
     class Meta:
         model = Favorite_list
         fields = ['pr_name','item_id']
+
+class EatenForm(forms.ModelForm):
+    class Meta:
+        model = Eaten
+        fields = ['pr_name','item_id','quntity']
+
+class TargetForm(forms.ModelForm):
+    class Meta:
+        model = Target
+        fields = ['pr_nm','tr_calories', 'tr_vitamins', 'tr_ingredient']

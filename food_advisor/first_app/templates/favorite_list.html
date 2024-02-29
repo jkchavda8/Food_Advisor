@@ -5,23 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favorite List</title>
     <style>
-        /* CSS to set height and width of the image */
-        img {
-            height: 200px; /* Set the desired height */
-            width: auto; /* Maintain aspect ratio */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .item {
+            list-style: none;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+            overflow: hidden;
+        }
+        .item img {
+            float: left;
+            margin-right: 20px;
+            max-height: 150px;
+            width: auto;
+        }
+        .item-details {
+            float: left;
+            width: calc(100% - 170px);
+        }
+        .item-details h3 {
+            margin-top: 0;
+        }
+        .remove-btn {
+            float: right;
+            background-color: #ff6347;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .remove-btn:hover {
+            background-color: #cc4c38;
         }
     </style>
 </head>
 <body>
-    <ul>
-        {% for item in items %}
-        <li>{{ item.item_name }}</li>
-        <li>{{ item.category }}</li>
-        <li>{{ item.calories }}</li>
-        <li>{{ item.vitamin }}</li>
-        <li>{{ item.ingredient }}</li>
-        <li><img src="{{ item.image_url }}" alt="{{ item.item_name }}"></li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h2>Favorite List</h2>
+        <ul>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+            {% for item in items %}
+            <li class="item">
+                <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
+                <div class="item-details">
+                    <h3>{{ item.item_name }}</h3>
+                    <p><strong>Category:</strong> {{ item.category }}</p>
+                    <p><strong>Calories:</strong> {{ item.calories }}</p>
+                    <p><strong>Vitamin:</strong> {{ item.vitamin }}</p>
+                    <p><strong>Ingredient:</strong> {{ item.ingredient }}</p>
+                    <form action="{% url 'remove_from_favorites' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="food_item_id" value="{{ item.item_name }}">
+                        <button type="submit" class="remove-btn">Remove from Favorites</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </body>
 </html>
