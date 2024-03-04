@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from .forms import  PersonForm,AdvisorForm, ItemForm, ReportForm , Favorite_listForm,EatenForm,TargetForm
-from .models import Person, Advisor, Item, Report, Favorite_list,Eaten,Target
+from .models import Person, Advisor, Item, Report, Favorite_list,Eaten,Target, Advice
 from django.contrib import messages
 from django.db.models import Sum,F
 from django.utils import timezone
@@ -137,7 +137,7 @@ def Login(r):
             p=Advisor.objects.filter(name=user,password=password).values()
             if len(p) == 1:
                 r.session['username'] = user
-                return redirect('home')
+                return redirect('home2')
             
         else:
             return redirect('Login')
@@ -315,3 +315,38 @@ def set_target(request):
     else:
         form = TargetForm()
     return render(request, 'set_target.html', {'form': form, 'VITAMIN_CHOICES': vitamin_choices})
+
+def home2(request):
+    if request.session.session_key is None:
+        return redirect('Login')
+    item_data = Item.objects.prefetch_related('advice_set').all()
+    data={
+        'item_data' : item_data,
+    }
+    return render(request,"home2.html",data)
+
+def give_advice(request):
+    if request.method == 'POST':
+        advice_id = request.POST['advice_id']
+        description = request.POST['description']
+        advice_data = Advice.objects.get(id = advice_id)
+        advice_data.description = description
+        advice_data.save()
+    return redirect(home2)
+
+def delete_advice(request):
+    if request.method == 'POST':
+        advice_id = request.POST['advice_id']
+        advice_data = Advice.objects.get(id = advice_id)
+        advice_data.delete()
+    return redirect(home2)
+
+def add_advice(request):
+    if request.method == 'POST':
+        description = request.POST['description']
+        item_id = request.POST['item_id']
+        advi= Advisor.objects.get(name = request.session['username'])
+        ite = Item.objects.get(id=item_id)
+        new_advice = Advice(advisor=advi,description=description,item=ite)
+        new_advice.save()
+    return redirect(home2)

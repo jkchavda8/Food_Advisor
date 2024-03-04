@@ -20,6 +20,8 @@ class Advisor(models.Model):
     email = models.EmailField()
     specification = models.CharField(max_length=100)
     password = models.CharField(max_length=20)
+    def __str__(self):
+        return self.name
 
 class Item(models.Model):
     CATEGORY_CHOICES = (
@@ -48,6 +50,8 @@ class Item(models.Model):
     vitamin = models.CharField(max_length=10,choices=VITAMIN_CHOICES)
     ingredient = models.CharField(max_length=100)
     image = models.ImageField(upload_to='item_images/')
+    def __str__(self):
+        return self.item_name
 
 class Report(models.Model):
     pr_nm = models.ForeignKey(Person,on_delete=models.CASCADE,default=1)
@@ -89,5 +93,10 @@ class Target(models.Model):
     blank=True,
     default=1)
     tr_ingredient = models.CharField(max_length=100)
+
+class Advice(models.Model):
+    advisor = models.ForeignKey(Advisor, on_delete=models.CASCADE)
+    description = models.TextField()
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
     
