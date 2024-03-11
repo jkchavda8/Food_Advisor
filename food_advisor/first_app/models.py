@@ -21,6 +21,8 @@ class Advisor(models.Model):
     email = models.EmailField()
     specification = models.CharField(max_length=100)
     password = models.CharField(max_length=20)
+    def __str__(self):
+        return self.name
 
 class Item(models.Model):
     CATEGORY_CHOICES = (
@@ -97,3 +99,9 @@ class Feedback(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
     message = models.TextField()
+class Advice(models.Model):
+    advisor = models.ForeignKey(Advisor, on_delete=models.CASCADE)
+    description = models.TextField()
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+
+    

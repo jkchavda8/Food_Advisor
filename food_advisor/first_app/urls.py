@@ -23,4 +23,8 @@ urlpatterns=[
     path('about_us/',views.about_us,name='about_us'),
     path('feedback/',views.feedback,name='feedback'),
     path('search_items/',views.search_items,name='search_items'),
+    path('home2/', views.home2, name='home2'),
+    path('give_advice/', views.give_advice, name='give_advice'),
+    path('add_advice/',views.add_advice, name='add_advice'),
+    path('delete_advice/',views.delete_advice, name='delete_advice'),
 ]
