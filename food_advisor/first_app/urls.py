@@ -20,4 +20,7 @@ urlpatterns=[
     path('mark_as_eaten/',views.mark_as_eaten,name='mark_as_eaten'),
     path('report_lists/',views.report_lists,name='report_lists'),
     path('set_target/',views.set_target,name='set_target'),
+    path('about_us/',views.about_us,name='about_us'),
+    path('feedback/',views.feedback,name='feedback'),
+    path('search_items/',views.search_items,name='search_items'),
 ]
