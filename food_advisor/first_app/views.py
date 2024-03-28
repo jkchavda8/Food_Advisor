@@ -109,15 +109,13 @@ def home(r):
     food_items_a = Item.objects.all()
     food_items = []
     for item in food_items_a:
-        image_url = item.image.url if item.image else ''
-        image_url = image_url.replace('/item_images/item_images/', '/item_images/')
         item_detail = {
             'item_name' : item.item_name,
             'category': item.get_category_display(),
             'calories': item.calories,
             'vitamin': item.get_vitamin_display(),
             'ingredient': item.ingredient,
-            'image_url': image_url
+            'image_url': item.image.url
         }
         food_items.append(item_detail)
     return render(r,'home.html',{'food_items': food_items})

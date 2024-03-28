@@ -49,7 +49,7 @@ class Item(models.Model):
     calories = models.IntegerField()
     vitamin = models.CharField(max_length=10,choices=VITAMIN_CHOICES)
     ingredient = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='item_images/')
+    image = models.ImageField()
     def __str__(self):
         return self.item_name
 
