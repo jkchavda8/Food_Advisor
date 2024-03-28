@@ -10,12 +10,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <title>Food Advisor</title>
     <style>
+        /* Global styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f8f8f8;
         }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        /* Header styles */
         header {
             background-color: #333;
             color: #fff;
@@ -25,35 +32,24 @@
         h1 {
             margin: 0;
         }
+        /* Navbar styles */
         nav {
             background-color: #555;
             color: #fff;
-            padding: 10px 0;
             text-align: center;
+            padding: 10px 0;
         }
         nav a {
             color: #fff;
             text-decoration: none;
             margin: 0 10px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        .food-item {
-            background-color: #fff;
+            padding: 5px 10px;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
         }
-        .food-item h2 {
-            margin-top: 0;
+        nav a:hover {
+            background-color: #777;
         }
-        .food-item p {
-            margin-top: 0;
-        }
+        /* Footer styles */
         footer {
             background-color: #333;
             color: #fff;
@@ -63,25 +59,67 @@
             bottom: 0;
             width: 100%;
         }
-            img {
-                height: 200px; /* Set the desired height */
-                width: auto; /* Maintain aspect ratio */
-            }
+        /* Food item styles */
+        .food-item {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-right: 20px; /* Add margin between items */
+            display: inline-block; /* Display items in a line */
+            vertical-align: top; /* Align items at the top */
+            width: calc(33.33% - 10px);
+            width: 200px /* Set width for each item (adjust as needed) */
+            box-sizing: border-box; /* Include padding and border in width calculation */
+        }
+        .food-item h2 {
+            margin-top: 0;
+        }
+        .food-item p {
+            margin-top: 0;
+        }
+        img {
+            height: 200px;
+            width: 200px;
+            margin: 10px auto;
+            display: block;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            margin-top: 10px;
+        }
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        input[type="number"] {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 70px;
+        }
     </style>
 </head>
 <body>
-    
     <header>
         <h1>Food Advisor</h1>
     </header>
     <nav>
         <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
+        <a href="/about_us">About</a>
+        <a href="/feedback">Feedback</a>
         <a href="../logout">Logout</a>
         <a href="../favorite_list">Favorite List</a>
-        <a href="/report_list"> Generate Report</a>
-        <a href="/report_lists">view Report</a>
+        <a href="/report_list">Generate Report</a>
+        <a href="/report_lists">View Report</a>
         <a href="/set_target">Set Target</a>
     </nav>
     <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom fixed-top">
@@ -133,6 +171,33 @@
       </nav>
 
     <div class="container">
+        <form action="{% url 'search_items' %}" method="get">
+            <input type="text" name="query" placeholder="Search items">
+            <button type="submit">Search</button>
+        </form>
+        {% if searched_item %}
+        <div class="searched-item">
+            <h2>{{ searched_item.item_name }}</h2>
+            <p>Category: {{ searched_item.get_category_display }}</p>
+            <p>Calories: {{ searched_item.calories }}</p>
+            <p>Vitamin: {{ searched_item.get_vitamin_display }}</p>
+            <p>Ingredient: {{ searched_item.ingredient }}</p>
+            <img src="{{ searched_item.image.url }}" alt="{{ searched_item.item_name }}">
+            <!-- Add to favorites form -->
+            <form action="{% url 'add_to_favorites' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="food_item_id" value="{{ searched_item.item_name }}">
+                <button type="submit">Add to Favorites</button>
+            </form>
+            <!-- Mark as eaten form -->
+            <form action="{% url 'mark_as_eaten' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="food_item_id" value="{{ searched_item.item_name }}">
+                <input type="number" name="quantity" value="1" min="1" placeholder="Quantity">
+                <button type="submit">Mark as Eaten</button>
+            </form>
+        </div>
+        {% endif %}
         {% if messages %}
         <div class="messages">
             {% for message in messages %}
@@ -142,14 +207,12 @@
         {% endif %}
         {% for food_item in food_items %}
         <div class="food-item">
-            <ul>
-                <li>{{ food_item.item_name }}</li>
-                <li>{{ food_item.category }}</li>
-                <li>{{ food_item.calories }}</li>
-                <li>{{ food_item.vitamin }}</li>
-                <li>{{ food_item.ingredient }}</li>
-                <li><img src="{{ food_item.image_url }}" alt="{{ food_item.item_name }}"></li>
-            </ul>
+            <h2>{{ food_item.item_name }}</h2>
+            <p>Category: {{ food_item.category }}</p>
+            <p>Calories: {{ food_item.calories }}</p>
+            <p>Vitamin: {{ food_item.vitamin }}</p>
+            <p>Ingredient: {{ food_item.ingredient }}</p>
+            <img src="{{ food_item.image_url }}" alt="{{ food_item.item_name }}">
             <form action="{% url 'add_to_favorites' %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="food_item_id" value="{{ food_item.item_name }}">
@@ -164,7 +227,6 @@
         </div>
         {% endfor %}
     </div>
-
     <footer>
         &copy; 2024 Food Advisor
     </footer>

@@ -39,6 +39,7 @@ admin.site.register(models.Report,ProductReport)
 admin.site.register(models.Favorite_list)
 admin.site.register(models.Eaten)
 admin.site.register(models.Target)
+admin.site.register(models.Feedback)
 
 
 

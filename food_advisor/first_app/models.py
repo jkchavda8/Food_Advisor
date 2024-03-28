@@ -1,6 +1,7 @@
 # models.py
 from django.db import models
 from multiselectfield import MultiSelectField
+from django.utils import timezone
 
 class Person(models.Model):
     GENDER_CHOICES = (
@@ -55,7 +56,7 @@ class Item(models.Model):
 
 class Report(models.Model):
     pr_nm = models.ForeignKey(Person,on_delete=models.CASCADE,default=1)
-    date = models.DateField()
+    date = models.DateField(default=timezone.now)
     total_calories = models.IntegerField()
     total_vitamins = models.CharField(max_length=200)
     consumed_items = models.CharField(max_length=200)
@@ -68,6 +69,7 @@ class Favorite_list(models.Model):
 class Eaten(models.Model):
     pr_name = models.ForeignKey(Person,on_delete=models.CASCADE,default=1)
     item_id = models.ForeignKey(Item,on_delete=models.CASCADE)
+    date = models.DateField(default='2024-2-12')
     quntity = models.IntegerField()
 
 
@@ -94,6 +96,10 @@ class Target(models.Model):
     default=1)
     tr_ingredient = models.CharField(max_length=100)
 
+class Feedback(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
 class Advice(models.Model):
     advisor = models.ForeignKey(Advisor, on_delete=models.CASCADE)
     description = models.TextField()

@@ -51,10 +51,24 @@
         .remove-btn:hover {
             background-color: #cc4c38;
         }
+        .return-home-btn {
+            margin-bottom: 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .return-home-btn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="{% url 'home' %}" class="return-home-btn">Back to Home</a>
         <h2>Favorite List</h2>
         <ul>
         {% if messages %}

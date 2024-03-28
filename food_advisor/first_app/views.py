@@ -1,10 +1,39 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
+from .forms import  PersonForm,AdvisorForm, ItemForm, ReportForm , Favorite_listForm,EatenForm,TargetForm,FeedbackForm
+from .models import Person, Advisor, Item, Report, Favorite_list,Eaten,Target,Feedback
 from .forms import  PersonForm,AdvisorForm, ItemForm, ReportForm , Favorite_listForm,EatenForm,TargetForm
 from .models import Person, Advisor, Item, Report, Favorite_list,Eaten,Target, Advice
 from django.contrib import messages
 from django.db.models import Sum,F
 from django.utils import timezone
+
+def search_items(request):
+    query = request.GET.get('query')
+    searched_item = None
+    other_items = None
+    
+    if query:
+        searched_item = Item.objects.filter(item_name__iexact=query).first()
+    food_items_a = Item.objects.all()
+    food_items = []
+    for item in food_items_a:
+        image_url = item.image.url if item.image else ''
+        # image_url = image_url.replace('/item_images/item_images/', '/item_images/')
+        item_detail = {
+            'item_name' : item.item_name,
+            'category': item.get_category_display(),
+            'calories': item.calories,
+            'vitamin': item.get_vitamin_display(),
+            'ingredient': item.ingredient,
+            'image_url': image_url
+        }
+        food_items.append(item_detail)
+    current_user = request.session['username']
+    pr_id = get_peron_id_by_name(current_user)
+    favorite_item = Favorite_list(pr_name=pr_id)
+    return render(request,'home.html',{'searched_item':searched_item,'food_items': food_items,'favorite_item':favorite_item})
+    # return render(request, 'home.html', {'searched_item': searched_item, 'other_items': other_items})
 
 def create_person(request):
     if request.method == 'POST':
@@ -80,7 +109,7 @@ def favorite_list(request):
             # Construct the correct image URL
             image_url = favorite_item.item_id.image.url if favorite_item.item_id.image else ''
             # Remove the duplicate prefix '/item_images/item_images/'
-            image_url = image_url.replace('/item_images/item_images/', '/item_images/')
+            # image_url = image_url.replace('/item_images/item_images/', '/item_images/')
             item_details.append({
                 'pr_name': favorite_item.pr_name,
                 'item_name': favorite_item.item_id.item_name,
@@ -118,7 +147,10 @@ def home(r):
             'image_url': item.image.url
         }
         food_items.append(item_detail)
-    return render(r,'home.html',{'food_items': food_items})
+    current_user = r.session['username']
+    pr_id = get_peron_id_by_name(current_user)
+    favorite_item = Favorite_list(pr_name=pr_id)
+    return render(r,'home.html',{'food_items': food_items,'favorite_item':favorite_item})
 
 def Login(r):
     if r.method=='POST':
@@ -217,15 +249,16 @@ def mark_as_eaten(request):
                 item_id = get_item_id_by_name(food_item_id)
                 pr_id = get_peron_id_by_name(current_user)
                 # Create and save the Eaten instance
-                eaten_item = Eaten.objects.filter(pr_name=pr_id, item_id=item_id).first()
+                eaten_item = Eaten.objects.filter(pr_name=pr_id, item_id=item_id,date=timezone.now().date()).first()
                 if eaten_item:
                     # If already eaten, update the quantity
                     eaten_item.quntity += int(quantity)
+                    eaten_item.date = timezone.now().date()
                     eaten_item.save()
                     messages.success(request, f'{quantity} item(s) added to the existing eaten items.')
                 else:
                     # If not eaten yet, create a new Eaten instance
-                    eaten_item = Eaten(pr_name=pr_id, item_id=item_id, quntity=quantity)
+                    eaten_item = Eaten(pr_name=pr_id, item_id=item_id, quntity=quantity,date=timezone.now().date())
                     eaten_item.save()
                     messages.success(request, f'{quantity} item(s) marked as eaten.')
             except Person.DoesNotExist:
@@ -244,7 +277,7 @@ def report_list(request):
         person = Person.objects.get(name=current_user)
         
         # Query the eaten items for the person
-        eaten_items = Eaten.objects.filter(pr_name=person)
+        eaten_items = Eaten.objects.filter(pr_name=person,date=timezone.now().date())
         
         # Calculate total calories
         total_calories = eaten_items.aggregate(total_calories=Sum(F('item_id__calories') * F('quntity')))['total_calories'] or 0
@@ -294,14 +327,22 @@ def report_lists(request):
     
 def set_target(request):
     vitamin_choices = Target.VITAMIN_CHOICES
+    current_user = request.session['username']
+    person = Person.objects.get(name=current_user)
+    existing_target = Target.objects.filter(pr_nm = person).first()
     if request.method == 'POST':
-        current_user = request.session['username']
         tr_calories = request.POST['tr_calories']
         tr_vitamins = request.POST.getlist('tr_vitamins')  # Use getlist to retrieve multiple selected values
         tr_ingredient = request.POST['tr_ingredient']
-        person = Person.objects.get(name=current_user)
         # You don't need to check form.is_valid() because you're not using a form here
-
+        if existing_target is not None:
+            existing_target.pr_nm = person
+            existing_target.tr_calories = tr_calories
+            existing_target.tr_vitamins = tr_vitamins
+            existing_target.tr_ingredient = tr_ingredient
+            existing_target.save()
+            messages.success(request, "Your target has been updated.")
+            return redirect('home')
         target = Target.objects.create(
             pr_nm=person,
             tr_calories=tr_calories,
@@ -309,9 +350,31 @@ def set_target(request):
             tr_ingredient=tr_ingredient
         )
         # Redirect to a success page or homepage
+        messages.success(request,"Your target has been set.")
         return redirect('home')
     else:
         form = TargetForm()
+    return render(request, 'set_target.html', {'form': form, 'VITAMIN_CHOICES': vitamin_choices, 'existing_target':existing_target})
+
+def about_us(request):
+    return render(request, 'about_us.html')
+
+def feedback(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')  
+        email = request.POST.get('email')
+        mes = request.POST.get('mes')
+        print(name)
+        print(email)
+        print(mes)
+        form = Feedback.objects.create(
+            name = name,
+            email = email,
+            message = mes
+        )
+        messages.success(request,"Thank you for your feedback.")
+        return redirect('feedback')  
+    return render(request,'feedback.html')
     return render(request, 'set_target.html', {'form': form, 'VITAMIN_CHOICES': vitamin_choices})
 
 def home2(request):
